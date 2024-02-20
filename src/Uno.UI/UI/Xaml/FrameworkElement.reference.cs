@@ -56,6 +56,10 @@ namespace Microsoft.UI.Xaml
 		public event RoutedEventHandler Loaded;
 		[global::Uno.UI.Xaml.GeneratedWeakEvent]
 		public event RoutedEventHandler Unloaded;
+		[global::Uno.UI.Xaml.GeneratedWeakEvent]
+		public event global::Microsoft.UI.Xaml.SizeChangedEventHandler SizeChanged;
+#endif
+
 #pragma warning restore 67
 	}
 }

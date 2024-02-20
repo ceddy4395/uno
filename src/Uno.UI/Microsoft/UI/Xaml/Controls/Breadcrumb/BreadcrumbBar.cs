@@ -706,15 +706,7 @@ public partial class BreadcrumbBar : Control
 	private protected override void OnLoaded()
 	{
 		base.OnLoaded();
-	}
 
-	private protected override void OnUnloaded()
-	{
-		base.OnUnloaded();
-	}
-
-	private void BreadcrumbBar_Loaded(object sender, RoutedEventArgs e)
-	{
 		if (_isUnloaded)
 		{
 			_isUnloaded = false;
@@ -722,8 +714,10 @@ public partial class BreadcrumbBar : Control
 		}
 	}
 
-	private void BreadcrumbBar_Unloaded(object sender, RoutedEventArgs e)
+	private protected override void OnUnloaded()
 	{
+		base.OnUnloaded();
+
 		RevokeListeners();
 		_isUnloaded = true;
 	}

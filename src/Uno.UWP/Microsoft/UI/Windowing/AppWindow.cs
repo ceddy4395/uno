@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using Windows.Foundation;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing.Native;
+using Windows.Foundation;
+using Windows.Graphics;
 using Windows.UI.ViewManagement;
 using MUXWindowId = Microsoft.UI.WindowId;
-using Windows.Graphics;
-using Microsoft.UI.Dispatching;
 
 namespace Microsoft.UI.Windowing;
 
@@ -102,6 +102,7 @@ partial class AppWindow
 		}
 
 		_nativeAppWindow = nativeAppWindow;
+		_nativeAppWindow.PropertyChanged += OnNativeAppWindowPropertyChanged;
 
 		if (string.IsNullOrWhiteSpace(_nativeAppWindow.Title) && !string.IsNullOrWhiteSpace(_titleCache))
 		{
@@ -113,6 +114,18 @@ partial class AppWindow
 		}
 
 		SetPresenter(AppWindowPresenterKind.Default);
+	}
+
+	private void OnNativeAppWindowPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+	{
+		if (e.PropertyName == nameof(INativeAppWindow.Position))
+		{
+			OnAppWindowChanged(new AppWindowChangedEventArgs() { DidPositionChange = true });
+		}
+		else if (e.PropertyName == nameof(INativeAppWindow.Size))
+		{
+			OnAppWindowChanged(new AppWindowChangedEventArgs() { DidSizeChange = true });
+		}
 	}
 
 	public event TypedEventHandler<AppWindow, AppWindowClosingEventArgs> Closing;
@@ -128,6 +141,10 @@ partial class AppWindow
 
 		return appWindow;
 	}
+
+	public void Move(PointInt32 position) => _nativeAppWindow.Move(position);
+
+	public void Resize(SizeInt32 size) => _nativeAppWindow.Resize(size);
 
 	public void SetPresenter(AppWindowPresenter appWindowPresenter)
 	{
@@ -166,4 +183,6 @@ partial class AppWindow
 	}
 
 	internal void RaiseClosing(AppWindowClosingEventArgs args) => Closing?.Invoke(this, args);
+
+	internal void OnAppWindowChanged(AppWindowChangedEventArgs args) => Changed?.Invoke(this, args);
 }

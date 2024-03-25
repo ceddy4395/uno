@@ -1,14 +1,14 @@
 ﻿#nullable enable
 
 using System;
+using System.ComponentModel;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Uno.Disposables;
 using Uno.Foundation.Logging;
 using Windows.Foundation;
-using Microsoft.UI.Windowing.Native;
-using Windows.UI.Core;
 using Windows.Graphics;
-using Microsoft.UI.Dispatching;
+using Windows.UI.Core;
 
 namespace Uno.UI.Xaml.Controls;
 
@@ -17,6 +17,8 @@ internal abstract class NativeWindowWrapperBase : INativeWindowWrapper
 	private Rect _bounds;
 	private Rect _visibleBounds;
 	private bool _visible;
+	private PointInt32 _position;
+	private SizeInt32 _size;
 	private string _title = "";
 	private CoreWindowActivationState _activationState;
 	private readonly SerialDisposable _presenterSubscription = new SerialDisposable();
@@ -62,7 +64,7 @@ internal abstract class NativeWindowWrapperBase : INativeWindowWrapper
 		}
 	}
 
-	public bool Visible
+	public bool IsVisible
 	{
 		get => _visible;
 		set
@@ -88,11 +90,31 @@ internal abstract class NativeWindowWrapperBase : INativeWindowWrapper
 		}
 	}
 
-	public bool IsVisible => throw new NotImplementedException();
+	public PointInt32 Position
+	{
+		get => _position;
+		set
+		{
+			if (!_position.Equals(value))
+			{
+				_position = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Position)));
+			}
+		}
+	}
 
-	public PointInt32 Position => throw new NotImplementedException();
-
-	public SizeInt32 Size => throw new NotImplementedException();
+	public SizeInt32 Size
+	{
+		get => _size;
+		set
+		{
+			if (!_size.Equals(value))
+			{
+				_size = value;
+				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Size)));
+			}
+		}
+	}
 
 	public SizeInt32 ClientSize => throw new NotImplementedException();
 
@@ -105,6 +127,7 @@ internal abstract class NativeWindowWrapperBase : INativeWindowWrapper
 	public event EventHandler<AppWindowClosingEventArgs>? Closing;
 	public event EventHandler? Closed;
 	public event EventHandler? Shown;
+	public event PropertyChangedEventHandler? PropertyChanged;
 
 	public virtual void Activate() { }
 
@@ -151,9 +174,15 @@ internal abstract class NativeWindowWrapperBase : INativeWindowWrapper
 
 	protected virtual IDisposable ApplyOverlappedPresenter(OverlappedPresenter presenter) => Disposable.Empty;
 
+	public virtual void Move(PointInt32 position)
+	{
+	}
+
+	public virtual void Resize(SizeInt32 size)
+	{
+	}
+
 	public void Destroy() => throw new NotImplementedException();
 	public void Hide() => throw new NotImplementedException();
-	public void Move(PointInt32 position) => throw new NotImplementedException();
-	public void Resize(SizeInt32 size) => throw new NotImplementedException();
 	public void Show(bool activateWindow) => throw new NotImplementedException();
 }

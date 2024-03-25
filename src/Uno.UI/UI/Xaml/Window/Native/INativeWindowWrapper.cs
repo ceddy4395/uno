@@ -6,6 +6,7 @@ using Windows.Foundation;
 using Windows.UI.Core;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Windowing.Native;
+using System.ComponentModel;
 
 namespace Uno.UI.Xaml.Controls;
 

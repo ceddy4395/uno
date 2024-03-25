@@ -5,9 +5,8 @@ using System.ComponentModel;
 using System.Windows;
 using Microsoft.UI.Windowing;
 using Uno.Disposables;
-using Uno.Foundation.Logging;
 using Uno.UI.Xaml.Controls;
-using Windows.Foundation;
+using Windows.Graphics;
 using Windows.UI.Core;
 using Windows.UI.Core.Preview;
 using WinUIApplication = Microsoft.UI.Xaml.Application;
@@ -18,7 +17,7 @@ internal class WpfWindowWrapper : NativeWindowWrapperBase
 {
 	private readonly UnoWpfWindow _wpfWindow;
 	private bool _isFullScreen;
-
+	
 	public WpfWindowWrapper(UnoWpfWindow wpfWindow)
 	{
 		_wpfWindow = wpfWindow ?? throw new ArgumentNullException(nameof(wpfWindow));
@@ -28,7 +27,21 @@ internal class WpfWindowWrapper : NativeWindowWrapperBase
 		_wpfWindow.IsVisibleChanged += OnNativeIsVisibleChanged;
 		_wpfWindow.Closing += OnNativeClosing;
 		_wpfWindow.Closed += OnNativeClosed;
+		_wpfWindow.LocationChanged += OnNativeLocationChanged;
+		_wpfWindow.SizeChanged += OnNativeSizeChanged;
+		UpdateSizeFromNative();
+		UpdatePositionFromNative();
 	}
+
+	private void OnNativeSizeChanged(object sender, SizeChangedEventArgs e) => UpdateSizeFromNative();
+
+	private void UpdateSizeFromNative() =>
+		Size = new() { Width = (int)_wpfWindow.Width, Height = (int)_wpfWindow.Height };
+
+	private void OnNativeLocationChanged(object? sender, EventArgs e) => UpdatePositionFromNative();
+
+	private void UpdatePositionFromNative() =>
+		Position = new() { X = (int)_wpfWindow.Left, Y = (int)_wpfWindow.Top };
 
 	public override string Title
 	{
@@ -38,7 +51,11 @@ internal class WpfWindowWrapper : NativeWindowWrapperBase
 
 	public override object NativeWindow => _wpfWindow;
 
-	protected override void ShowCore() => _wpfWindow.Show();
+	protected override void ShowCore()
+	{
+		_wpfWindow.Show();
+		UpdatePositionFromNative();
+	}
 
 	public override void Activate() => _wpfWindow.Activate();
 
@@ -86,11 +103,11 @@ internal class WpfWindowWrapper : NativeWindowWrapperBase
 		var isVisible = (bool)e.NewValue;
 		if (isVisible)
 		{
-			WinUIApplication.Current?.RaiseLeavingBackground(() => Visible = isVisible);
+			WinUIApplication.Current?.RaiseLeavingBackground(() => IsVisible = isVisible);
 		}
 		else
 		{
-			Visible = isVisible;
+			IsVisible = isVisible;
 			WinUIApplication.Current?.RaiseEnteredBackground(null);
 		}
 	}
@@ -117,5 +134,17 @@ internal class WpfWindowWrapper : NativeWindowWrapperBase
 	{
 		presenter.SetNative(new NativeOverlappedPresenter(_wpfWindow));
 		return Disposable.Create(() => presenter.SetNative(null));
+	}
+
+	public override void Move(PointInt32 position)
+	{
+		_wpfWindow.Left = position.X;
+		_wpfWindow.Top = position.Y;
+	}
+
+	public override void Resize(SizeInt32 size)
+	{
+		_wpfWindow.Width = size.Width;
+		_wpfWindow.Height = size.Height;
 	}
 }
